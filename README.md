@@ -2,7 +2,7 @@
 
 ## Instructivos para el desarrollo de los trabajos prácticos.
 
-Notas sobre WSL 2 para Windows 11. [Ir a Notas sobre WSL 2:](#notas-sobre-WSL2) 
+Notas sobre WSL 2 para Windows 11. [Ir a Notas sobre WSL 2.](#notas-sobre-WSL2) 
 
 ### Consideraciones generales
 
@@ -324,11 +324,48 @@ Ir a: https://github.com/jaouret/PDI_TP1-TP2-TP3-TP4.git
 
 ## Notas sobre WSL2
 
+### Cómo verificar desde Windows si el BIOS está bien configurado
+- Abrir PowerShell y ejecutar:   
+```bash
+systeminfo
+```
+- Debiera salir algo como:   
+```txt  
+Hyper-V Requirements:
+VM Monitor Mode Extensions: Yes
+Virtualization Enabled In Firmware: Yes
+Second Level Address Translation: Yes
+Data Execution Prevention Available: Yes
+```
+Debe decir:   
+- Virtualization Enabled In Firmware: Yes   
 
+### Verificar si WSL está usando virtualización   
+```bash
+wsl --status
+Default Version: 2
+Kernel version: ...
+```
 
+### Configurar   
 
+- en el BIOS   
+```txt
+Intel VT-x / AMD SVM        ENABLED
+VT-d / IOMMU                ENABLED
+Hypervisor support          ENABLED
+Secure Boot                 cualquiera
+```
+- en Windows Features   
+- 
+```txt
+Windows Subsystem for Linux
+Virtual Machine Platform
+Windows Hypervisor Platform
+```
+luego:   
 
-
-
-
-
+```bash
+wsl --shutdown
+wsl --update
+```
