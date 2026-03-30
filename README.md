@@ -357,7 +357,7 @@ Hypervisor support          ENABLED
 Secure Boot                 cualquiera
 ```
 - en Windows Features   
-- 
+  
 ```txt
 Windows Subsystem for Linux
 Virtual Machine Platform
