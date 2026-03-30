@@ -1,9 +1,9 @@
-# PDI - TP 1 - A (Entrega 28/04/2025)
+# PDI - TP 1 - A (Entrega: ver calendario en el Foro)
 
-Ir a: (https://github.com/jaouret/PDI_2025-TP1-TP2-TP3-TP4/blob/main/TP1/TP1_Cliente_Servidor_R1.ipynb)
+Ir a: (https://github.com/jaouret/PDI_TP1-TP2-TP3-TP4/blob/main/TP1/TP1_Cliente_Servidor_R1.ipynb)
 
-# PDI - TP 1 - B - Raw Sockets (Entrega 12/05/2025)
-Ir a: https://github.com/jaouret/PDI_2025-TP1-TP2-TP3-TP4/blob/main/TP1/TP1B_Raw_Sockets_R2.ipynb
+# PDI - TP 1 - B - Raw Sockets (Entrega: ver calendario en el Foro)
+Ir a: https://github.com/jaouret/PDI_TP1-TP2-TP3-TP4/blob/main/TP1/TP1B_Raw_Sockets_R2.ipynb
 
 El concepto básico de sockets a bajo nivel es enviar un solo paquete por vez con todos los encabezados de los protocolos
 completados dentro del programa en lugar de usar el kernel.
@@ -28,24 +28,24 @@ que se reciban. ( En este ejemplo se evitan los headers IP y TCP, y se imprime s
 TCP contenidos en el paquete ).
 
 
-# PDI - TP 1 - C - Cliente Servidor utilizando Sockets en Python. (Entrega 19/05/2025)
+# PDI - TP 1 - C - Cliente Servidor utilizando Sockets en Python. (Entrega: ver calendario en el Foro)
 
-Ir a: https://github.com/jaouret/PDI_2025-TP1-TP2-TP3-TP4/blob/main/TP1/TP1C_Sockets_Python.ipynb
+Ir a: https://github.com/jaouret/PDI_TP1-TP2-TP3-TP4/blob/main/TP1/TP1C_Sockets_Python.ipynb
 
 Para realizar programas Cliente Servidor con Python utlizamos la librería o paquete socket.py ( https://github.com/python/cpython/blob/3.10/Lib/socket.py )
 ). Esta librería es una transcripción sencilla de la llamada al sistema sockets de BSD Unixal estilo orientado a objetos de Python:.
 La función socket() devuelve a socket object métodos que implementan las diversas llamadas al sistema de socket. Los tipos de parámetros tienen un nivel algo más alto que en la interfaz C, como con read() y write() en el uso de los archivos Python, la asignación del buffer es automática y la longitud del buffer está implícita en las operaciones de envío.
 
 
-# PDI - TP 2 - A - SNMP (Entrega 16/06/2025)
+# PDI - TP 2 - A - SNMP (Entrega: ver calendario en el Foro)
 
-Ir a: https://github.com/jaouret/PDI_2025-TP1-TP2-TP3-TP4/blob/main/TP2/TP2A_SNMP_R3.ipynb
+Ir a: https://github.com/jaouret/PDI_TP1-TP2-TP3-TP4/blob/main/TP2/TP2A_SNMP_R3.ipynb
 
 Realizar ejercicios 1, 2, 3 y 4
 
 Describir lo que se observa en un informe.
 
-# PDI - TP 3 - A - RestAPI - Servidores sin control de estado - Gestión de la Base de Datos (Entrega 31/06/2025)
+# PDI - TP 3 - A - RestAPI - Servidores sin control de estado - Gestión de la Base de Datos (Entrega: ver calendario en el Foro)
 Instalar SQLite.
 
 Instalar Heidi SQL en Windows.
@@ -93,9 +93,9 @@ Notas:
 
 Verificar y mejorar.
 
-# PDI - TP 4 - A - RestAPI - IoT - MQTT (Entrega 31/06/2025)
+# PDI - TP 4 - A - RestAPI - IoT - MQTT (Entrega: ver calendario en el Foro)
 
-Link al TP: https://github.com/jaouret/PDI_2025-TP1-TP2-TP3-TP4/blob/main/TP4/TP4_RestAPI_MQTT_R3.ipynb
+Link al TP: https://github.com/jaouret/PDI_TP1-TP2-TP3-TP4/blob/main/TP4/TP4_RestAPI_MQTT_R3.ipynb
 
 
 Instalar MQTT en Windows o Linux.
