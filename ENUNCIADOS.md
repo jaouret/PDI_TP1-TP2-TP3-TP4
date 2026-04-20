@@ -37,15 +37,7 @@ Para realizar programas Cliente Servidor con Python utlizamos la librería o paq
 La función socket() devuelve a socket object métodos que implementan las diversas llamadas al sistema de socket. Los tipos de parámetros tienen un nivel algo más alto que en la interfaz C, como con read() y write() en el uso de los archivos Python, la asignación del buffer es automática y la longitud del buffer está implícita en las operaciones de envío.
 
 
-# PDI - TP 2 - A - SNMP (Entrega: ver calendario en el Foro)
-
-Ir a: https://github.com/jaouret/PDI_TP1-TP2-TP3-TP4/blob/main/TP2/TP2A_SNMP_R3.ipynb
-
-Realizar ejercicios 1, 2, 3 y 4
-
-Describir lo que se observa en un informe.
-
-# PDI - TP 3 - A - RestAPI - Servidores sin control de estado - Gestión de la Base de Datos (Entrega: ver calendario en el Foro)
+# PDI - TP 2 - A - RestAPI - Servidores sin control de estado - Gestión de la Base de Datos (Entrega: ver calendario en el Foro)
 Instalar SQLite.
 
 Instalar Heidi SQL en Windows.
@@ -92,6 +84,14 @@ Notas:
 @app.route('/api/insertar-dato')
 
 Verificar y mejorar.
+
+# PDI - TP 3 - A - SNMP (Entrega: ver calendario en el Foro)
+
+Ir a: https://github.com/jaouret/PDI_TP1-TP2-TP3-TP4/blob/main/TP2/TP2A_SNMP_R3.ipynb
+
+Realizar ejercicios 1, 2, 3 y 4
+
+Describir lo que se observa en un informe.
 
 # PDI - TP 4 - A - RestAPI - IoT - MQTT (Entrega: ver calendario en el Foro)
 
