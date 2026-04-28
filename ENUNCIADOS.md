@@ -52,7 +52,7 @@ La idea es crear un repositorio de datos para recibir datos de sensores.
 
 Conectarse a la base de datos desde el gestor elegido.
 
-### Es posible obtener datos reales del sensor Airlink instalado en la UCA: [http://calidad](http://calidadaire.uca.edu.ar)
+### Es posible obtener datos reales del sensor Airlink instalado en la UCA: [http://calidadaire.uca.edu.ar](http://calidadaire.uca.edu.ar)
 
 Crear una tabla para recibir los datos de los sensores.
 
