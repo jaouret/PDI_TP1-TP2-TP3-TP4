@@ -16,12 +16,12 @@ DB_NAME = "db.datos_sensores"
 
 # Mejor usar variable de entorno:
 # export OPENWEATHER_API_KEY="TU_API_KEY"
-OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "COLOCAR_AQUI_TU_API_KEY")
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "C2f66bd561ebc7e4bde0d2a8951df0098")
 
 
-# ============================================================
+
 # BASE DE DATOS
-# ============================================================
+
 
 def get_connection():
     return sqlite3.connect(DB_NAME)
@@ -98,9 +98,9 @@ def obtener_registros():
     return datos
 
 
-# ============================================================
+
 # GEOLOCALIZACION + CLIMA
-# ============================================================
+
 
 def geo_latlon():
     g = geocoder.ip("me")
@@ -170,9 +170,9 @@ def clima_por_ciudad(ciudad):
     }
 
 
-# ============================================================
+
 # SIMULACION DE SENSOR
-# ============================================================
+
 
 def simular_lectura(lugar, altura, clima):
     temp_ext = float(clima["temp_ext"])
@@ -241,9 +241,9 @@ def insertar_lectura(lectura):
     return lectura
 
 
-# ============================================================
+
 # RUTAS WEB
-# ============================================================
+
 
 @app.route("/")
 def index():
@@ -326,10 +326,10 @@ def borrar(id):
     })
 
 
-# ============================================================
+
 # MAIN
-# ============================================================
+
 
 if __name__ == "__main__":
     create_table()
-    app.run(host="0.0.0.0", port=5011, debug=True)
+    app.run(host="0.0.0.0", port=5012, debug=True)
