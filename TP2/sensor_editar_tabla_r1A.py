@@ -1,5 +1,3 @@
-%%writefile sensor_editar_tabla_r1A.py
-
 from flask import Flask, render_template, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from decimal import Decimal
