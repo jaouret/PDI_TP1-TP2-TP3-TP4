@@ -1,123 +1,176 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Sensores de prueba</title>
-    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
-    <style>
-      body {
-        font-family: Sans-Serif;
-      }
-    </style>
-  </head>
-  <body>
-    <div>
-      <h1>Sensores de prueba</h1>
-      <hr>
-      <!-- Table Container -->
-      <div id="table"></div>
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Tabla de Sensores</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">Panel de Sensores Flask + SQLite</span>
     </div>
-    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
-    <script>
-      const tableDiv = document.getElementById('table');
+</nav>
 
-      const updateUrl = (prev, query) => {
-        return prev + (prev.indexOf('?') >= 0 ? '&' : '?') + new URLSearchParams(query).toString();
-      };
+<div class="container">
 
-      const editableCellAttributes = (data, row, col) => {
-          if (row) {
-            return {contentEditable: 'true', 'data-element-id': row.cells[0].data};
-          }
-          else {
-            return {};
-          }
-      };
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            Nuevo registro
+        </div>
+        <div class="card-body">
+            <form id="formNuevo" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Lugar</label>
+                    <input type="text" class="form-control" id="lugar">
+                </div>
 
-      new gridjs.Grid({
-        columns: [
-          { id: 'id', name: 'id' },
-          { id: 'co2', name: 'CO2', attributes: editableCellAttributes },
-          { id: 'co2_corregido', name: 'CO2 Norm ', attributes: editableCellAttributes },
-          { id: 'temp', name: 'Temp', attributes: editableCellAttributes },
-          { id: 'hum', name: 'Hum', attributes: editableCellAttributes },
-          { id: 'fecha', name: 'Fecha', attributes: editableCellAttributes },
-          { id: 'lugar', name: 'Lugar', attributes: editableCellAttributes },
-          { id: 'altura', name: 'Altura', attributes: editableCellAttributes },
-          { id: 'presion', name: 'Presion', attributes: editableCellAttributes },
-          { id: 'presion_nm', name: 'Presion nm', attributes: editableCellAttributes },
-          { id: 'temp_ext', name: 'Temp ext', attributes: editableCellAttributes },
-          { id: 'temp_ref', name: 'Temp ref', attributes: editableCellAttributes },
-        ],
-        server: {
-          url: '/api/todos-los-datos',
-          then: data => data,
-          total: data => data.total,
+                <div class="col-md-2">
+                    <label class="form-label">CO2</label>
+                    <input type="number" class="form-control" id="co2">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Temp</label>
+                    <input type="number" step="0.01" class="form-control" id="temp">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Hum</label>
+                    <input type="number" step="0.01" class="form-control" id="hum">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Fecha</label>
+                    <input type="text" class="form-control" id="fecha" placeholder="22/3/2021">
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-success">
+                        Guardar registro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            Lecturas almacenadas
+        </div>
+
+        <div class="card-body">
+
+            <div class="mb-3">
+                <input type="text" id="buscar" class="form-control" placeholder="Buscar por lugar...">
+            </div>
+
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Lugar</th>
+                        <th>CO2</th>
+                        <th>Temp</th>
+                        <th>Hum</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaDatos"></tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+async function cargarDatos() {
+    const search = document.getElementById("buscar").value;
+    const response = await fetch(`/api/datos?search=${search}`);
+    const result = await response.json();
+
+    const tabla = document.getElementById("tablaDatos");
+    tabla.innerHTML = "";
+
+    result.data.forEach(sensor => {
+        tabla.innerHTML += `
+            <tr>
+                <td>${sensor.id}</td>
+                <td>
+                    <input class="form-control" id="lugar-${sensor.id}" value="${sensor.lugar || ''}">
+                </td>
+                <td>${sensor.co2 ?? ''}</td>
+                <td>${sensor.temp ?? ''}</td>
+                <td>${sensor.hum ?? ''}</td>
+                <td>${sensor.fecha ?? ''}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="actualizar(${sensor.id})">
+                        Actualizar
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="eliminar(${sensor.id})">
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+async function actualizar(id) {
+    const lugar = document.getElementById(`lugar-${id}`).value;
+
+    await fetch(`/api/data/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
         },
-        search: {
-          enabled: true,
-          server: {
-            url: (prev, search) => {
-              return updateUrl(prev, {search});
-            },
-          },
+        body: JSON.stringify({ lugar: lugar })
+    });
+
+    cargarDatos();
+}
+
+async function eliminar(id) {
+    await fetch(`/api/data/${id}`, {
+        method: "DELETE"
+    });
+
+    cargarDatos();
+}
+
+document.getElementById("formNuevo").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const data = {
+        lugar: document.getElementById("lugar").value,
+        co2: document.getElementById("co2").value,
+        temp: document.getElementById("temp").value,
+        hum: document.getElementById("hum").value,
+        fecha: document.getElementById("fecha").value
+    };
+
+    await fetch("/api/data", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
         },
-        sort: {
-          enabled: true,
-          multiColumn: true,
-          server: {
-            url: (prev, columns) => {
-              const columnIds = ['id', 'co2', 'co2_corregido', 'temp', 'hum', 'fecha', 'lugar', 'altura', 'presion', 'presion_nm', 'temp_ext', 'temp_ref'];
-              const sort = columns.map(col => (col.direction === 1 ? '+' : '-') + columnIds[col.index]);
-              return updateUrl(prev, {sort});
-            },
-          },
-        },
-        pagination: {
-          enabled: true,
-          server: {
-            url: (prev, page, limit) => {
-              return updateUrl(prev, {start: page * limit, length: limit});
-            },
-          },
-        },
-      }).render(tableDiv);
+        body: JSON.stringify(data)
+    });
 
-      let savedValue;
+    this.reset();
+    cargarDatos();
+});
 
-      tableDiv.addEventListener('focusin', ev => {
-        if (ev.target.tagName === 'TD') {
-          savedValue = ev.target.textContent;
-        }
-      });
+document.getElementById("buscar").addEventListener("input", cargarDatos);
 
-      tableDiv.addEventListener('focusout', ev => {
-        if (ev.target.tagName === 'TD') {
-          if (savedValue !== ev.target.textContent) {
-            fetch('/api/data', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({
-                id: ev.target.dataset.elementId,
-                [ev.target.dataset.columnId]: ev.target.textContent
-              }),
-            });
-          }
-          savedValue = undefined;
-        }
-      });
+cargarDatos();
+</script>
 
-      tableDiv.addEventListener('keydown', ev => {
-        if (ev.target.tagName === 'TD') {
-          if (ev.key === 'Escape') {
-            ev.target.textContent = savedValue;
-            ev.target.blur();
-          }
-          else if (ev.key === 'Enter') {
-            ev.preventDefault();
-            ev.target.blur();
-          }
-        }
-      });
-    </script>
-  </body>
+</body>
 </html>
