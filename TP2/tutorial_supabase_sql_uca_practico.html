@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial Supabase SQL Editor</title>
+  <style>
+    :root {
+      --bg: #061019;
+      --panel: #0e1b27;
+      --panel-2: #122436;
+      --panel-3: #162f46;
+      --text: #f4fbf8;
+      --muted: #9bb3aa;
+      --green: #3ecf8e;
+      --green-2: #1faa6f;
+      --line: rgba(255,255,255,.12);
+      --soft: rgba(62,207,142,.13);
+      --blue: #7cc7ff;
+      --yellow: #ffd166;
+      --red: #ff6b6b;
+      --shadow: 0 24px 70px rgba(0,0,0,.38);
+      --mono: Consolas, 'Courier New', monospace;
+      --sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 8%, rgba(62,207,142,.22), transparent 27%),
+        radial-gradient(circle at 85% 28%, rgba(124,199,255,.12), transparent 30%),
+        linear-gradient(180deg, #061019 0%, #08141f 55%, #050a10 100%);
+    }
+
+    header {
+      padding: 38px 22px 24px;
+      text-align: center;
+    }
+
+
+
+    .uca-logo-wrap {
+      width: min(920px, calc(100% - 28px));
+      margin: 0 auto 22px;
+      padding: 14px 18px;
+      border-radius: 20px;
+      background: #000;
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    }
+
+    .uca-logo-wrap img {
+      width: 100%;
+      max-height: 150px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      color: var(--green);
+      background: var(--soft);
+      border: 1px solid rgba(62,207,142,.35);
+      font-weight: 800;
+      margin-bottom: 18px;
+    }
+
+    .badge-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 22px var(--green);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 1.05;
+      letter-spacing: -1.5px;
+    }
+
+    .subtitle {
+      max-width: 950px;
+      margin: 18px auto 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.6;
+    }
+
+    .layout {
+      width: min(1240px, calc(100% - 30px));
+      margin: 0 auto 48px;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 22px;
+    }
+
+    nav {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      background: rgba(14,27,39,.88);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    nav h2 {
+      margin: 6px 8px 12px;
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    .nav-btn {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 13px;
+      border-radius: 15px;
+      cursor: pointer;
+      text-align: left;
+      font-weight: 700;
+      transition: .18s ease;
+    }
+
+    .nav-btn:hover { background: rgba(255,255,255,.07); }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, rgba(62,207,142,.26), rgba(124,199,255,.12));
+      border: 1px solid rgba(62,207,142,.34);
+    }
+
+    .num {
+      min-width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,.08);
+      color: var(--green);
+      font-size: .8rem;
+      font-weight: 900;
+    }
+
+    .screen { display: none; animation: fade .22s ease; }
+    .screen.active { display: block; }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: rgba(14,27,39,.9);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .card-head {
+      padding: 26px 30px;
+      background:
+        linear-gradient(135deg, rgba(62,207,142,.14), rgba(124,199,255,.06)),
+        var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: .78rem;
+      color: #bdf8dc;
+      background: rgba(62,207,142,.14);
+      border: 1px solid rgba(62,207,142,.3);
+      padding: 6px 11px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+      font-weight: 900;
+    }
+
+    .card-head h2 {
+      margin: 0;
+      font-size: clamp(1.55rem, 3vw, 2.45rem);
+      letter-spacing: -.7px;
+    }
+
+    .card-head p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .content { padding: 26px 30px 30px; }
+
+    .note {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.045);
+      border-radius: 18px;
+      padding: 17px 19px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+      color: #dcebe5;
+    }
+
+    .note strong { color: var(--green); }
+
+    .browser {
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 22px;
+      overflow: hidden;
+      background: #07111a;
+      margin: 20px 0;
+      box-shadow: 0 20px 55px rgba(0,0,0,.32);
+    }
+
+    .browser-top {
+      height: 46px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 15px;
+      background: #101d2a;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .red { background: #ff5f57; }
+    .yellow { background: #ffbd2e; }
+    .green { background: #28c840; }
+
+    .address {
+      margin-left: 10px;
+      flex: 1;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      color: var(--muted);
+      font-size: .85rem;
+      font-family: var(--mono);
+    }
+
+    .studio {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      min-height: 440px;
+    }
+
+    .side {
+      background: #0b1722;
+      border-right: 1px solid rgba(255,255,255,.1);
+      padding: 16px 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      color: white;
+      margin: 6px 8px 18px;
+    }
+
+    .logo {
+      width: 23px;
+      height: 23px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--green), #145c40);
+      box-shadow: 0 0 18px rgba(62,207,142,.35);
+    }
+
+    .side-item {
+      padding: 10px 11px;
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: .93rem;
+      margin-bottom: 5px;
+      border: 1px solid transparent;
+    }
+
+    .side-item.active {
+      background: rgba(62,207,142,.13);
+      color: var(--green);
+      border-color: rgba(62,207,142,.25);
+      font-weight: 800;
+    }
+
+    .workspace { background: #0e1b27; min-width: 0; }
+
+    .toolbar {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+
+    .titlebox h3 { margin: 0; font-size: 1.05rem; }
+    .titlebox p { margin: 4px 0 0; color: var(--muted); font-size: .88rem; }
+
+    .run-btn, .new-btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 15px;
+      font-weight: 900;
+      cursor: default;
+      white-space: nowrap;
+    }
+
+    .run-btn { background: var(--green); color: #03130b; }
+    .new-btn { background: rgba(255,255,255,.08); color: white; border: 1px solid rgba(255,255,255,.13); }
+
+    .editor-wrap { padding: 16px; }
+
+    .sql-editor {
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #061019;
+    }
+
+    .editor-label {
+      height: 36px;
+      background: #101d2a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: .82rem;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: .93rem;
+      line-height: 1.62;
+      white-space: pre-wrap;
+      color: #e9fff5;
+    }
+
+    .kw { color: #7cc7ff; font-weight: 700; }
+    .str { color: #ffd166; }
+    .cm { color: #778b9f; }
+    .fn { color: #c792ea; }
+
+    .result {
+      margin-top: 14px;
+      border: 1px solid rgba(62,207,142,.25);
+      background: rgba(62,207,142,.08);
+      border-radius: 14px;
+      padding: 14px 15px;
+      color: #c7f7df;
+      font-size: .92rem;
+      line-height: 1.5;
+    }
+
+    .steps {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0 4px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 13px 14px;
+      border-radius: 15px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid var(--line);
+      color: #dcebe5;
+      line-height: 1.5;
+    }
+
+    .step b {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(62,207,142,.17);
+      color: var(--green);
+    }
+
+    .table-preview {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+      margin-top: 10px;
+      overflow: hidden;
+      border-radius: 14px;
+    }
+
+    .table-preview th, .table-preview td {
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 9px 10px;
+      text-align: left;
+    }
+
+    .table-preview th { color: var(--green); background: rgba(62,207,142,.08); }
+    .table-preview td { color: #d7e6e1; }
+
+    .actions {
+      padding: 20px 30px 26px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(255,255,255,.025);
+    }
+
+    .action-btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 18px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .action-btn.primary { background: var(--green); color: #03130b; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 0 20px 45px;
+      font-size: .9rem;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { position: static; }
+      .studio { grid-template-columns: 1fr; }
+      .side { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+      .brand { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="uca-logo-wrap">
+      <img src="data:image/jpeg;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH/xAAC/9oADAMBAAIAAwAAACEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQwAwAAAgAAgAQAAQAAAQAgAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATBgjCjAgCBAQABACDAAShTiAAAAAAByQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACijiQhhiAAQAAAABRQATBiAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACSgAiBDBShQAAAAAQQBgAgAAABAAABRQhQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABCgAAAAAAAAAAAACTxQCgBRCxQAAAABRQCAAAAAAAAAAAAAgQgAAAAAAAABCgTQBxyhSgghyRggxiASixgChCwBCBDQgxBDiwhzhjxSgAAAAAAAAAACBhRADhDBRBQAAAABRQAhAAAAAAAAASixgCAAAAAAAAAACAxxAQTBiCQygjQDhgBSAggygDzQCgxQRwACjyzwTDzAygAAAAAAAAABTyDwzggjQgACAAAAQACAAAAAAAAAARgBACAAAAAAAAABABABBAACAAAACABAACAADCAABAAACBAAADCBBACABBDBAAAAAAAAAAABCiRBBDgyCBABQAAABAAQDQAAAAygCgAAChAAAAAAAAAARSwAQTDDwBSQSjATwTSQBQABBTQwTQDCAwRAAygAAAAAAAAAAAAAAAAACThByhAjgAARCAQAQAACACAQBiAARQAAAgAggAAAAAABSQBgBABRQBRAjABAixyQCBwTRQSASiARRRTAByQAAAAAAAAAAAAAAAAAABBTzRAAAAABAgRCAAAACCAAAhACBDAADDBAAAAAAAAADgABwgRhASQCRgyxASTRQCCDxBjAgQxggSQSxDgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwggRAQyAAQBgwwBBQwygSQRzwAQAQgwwBwwAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACSyyyywQCjDAhBxgCxiwgAhzwjABCCiBBQjhSgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/xAAC/9oADAMBAAIAAwAAABDzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzDjzDzzzzzzzzjzzjzzzjjDjzzzzzzTzzzzzzwDzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzjixAhQjzzhyTzyzhzzziyzxzxjzzzzSzzzzzzzwDzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzwBBDyzhgDzjxTzzyyzzwyzzzzyjzzzxzxzzzzzzwDzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzwCTzRjwzxyjxTzzzzDzzzzzzzzzzzyxTzjzzzzzwDzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzyRzzzzzzzzzzzzwwTQDxTywDSjxTzzygDzSzzzzzzzzzyhRSjzzzzzwDzzyxxxTDDQDjRxBjQhTgBTzDzzBTxjwDABDiwyTRhggyDDiDzzzzzzzzzzxiigzwRTjzCjxTzzygDxzzzzzzzzzzghzzzTzzzzwDzzzziyzDjhDBzjBSTziyhTzRRQBTyiSiTAADSjxSiihxgCDzzzzzzzzzzzxhiRThxxATyjxzzzzjjzDxTzzzzzzziwxxSzzzzzwDzzyzzzyyzzyxwxxwzzwzxywxywzzwxxyyzwwxyyywxxzxzyzzzzzzzzzzzzyTRRQDgTzyzTjzzzjTyjQzzzzzRzxzTzzTzzzzzwDzzzSjDjDzRCBTTjRCDxjhDTyxzDCjBTiijDCzgjhTzzzzzzzzzzzzzzzzzzzyQCixxATzzizzziRzzziRzzjTxygjTzzjzjTzzwDzzyyRzxyxRDRSzwwwCxjzDjgjShghjyxQjjxSwiAxTzzzzzzzzzzzzzzzzzzwyihBRzzzzzxzTRzzzzyyzjRRywzzzzxyxzzzzwDzzzwTyyhxwywjzwRQwwyhTCwTghQhwDwwAwwCwzwDTzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzwDzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzDjDChTBjTDiDzTiDxzjzTDiiTDTzDTDTSTzzzzzwDzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzwhiAgzDjTRSBBSRRABzDzQABDhgixxDRTQCizzzzwDzzzzzzz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" alt="UCA - Facultad de Ingeniería y Ciencias Agrarias" />
+    </div>
+    <div class="badge"><span class="badge-dot"></span> Supabase + SQL Editor</div>
+    <h1>Tutorial de Supabase con sentencias SQL</h1>
+    <p class="subtitle">
+      Guía visual pantalla por pantalla para abrir Supabase, crear un proyecto/base de datos,
+      crear tablas y practicar ABM completo usando el SQL Editor y el botón Run.
+    </p>
+  </header>
+
+  <div class="layout">
+    <nav>
+      <h2>Pantallas</h2>
+      <button class="nav-btn active" data-screen="0"><span class="num">1</span> Abrir Supabase</button>
+      <button class="nav-btn" data-screen="1"><span class="num">2</span> Crear proyecto</button>
+      <button class="nav-btn" data-screen="2"><span class="num">3</span> Ir al SQL Editor</button>
+      <button class="nav-btn" data-screen="3"><span class="num">4</span> Crear tabla</button>
+      <button class="nav-btn" data-screen="4"><span class="num">5</span> Alta: INSERT</button>
+      <button class="nav-btn" data-screen="5"><span class="num">6</span> Consulta: SELECT</button>
+      <button class="nav-btn" data-screen="6"><span class="num">7</span> Modificación: UPDATE</button>
+      <button class="nav-btn" data-screen="7"><span class="num">8</span> Baja: DELETE</button>
+      <button class="nav-btn" data-screen="8"><span class="num">9</span> Consultas útiles</button>
+      <button class="nav-btn" data-screen="9"><span class="num">10</span> Práctico integrador</button>
+      <button class="nav-btn" data-screen="10"><span class="num">11</span> Resumen final</button>
+    </nav>
+
+    <main>
+      <section class="screen active">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 1</span>
+            <h2>Abrir Supabase</h2>
+            <p>El primer paso es ingresar a Supabase desde el navegador y entrar al panel de trabajo.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>Objetivo:</strong> que el alumno ubique Supabase como plataforma web y entienda que desde allí se administra la base de datos PostgreSQL.</div>
+            <div class="browser">
+              <div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">https://supabase.com</div></div>
+              <div class="studio">
+                <div class="side">
+                  <div class="brand"><span class="logo"></span> Supabase</div>
+                  <div class="side-item active">Dashboard</div>
+                  <div class="side-item">Projects</div>
+                  <div class="side-item">Organizations</div>
+                  <div class="side-item">Account</div>
+                </div>
+                <div class="workspace">
+                  <div class="toolbar"><div class="titlebox"><h3>Panel principal</h3><p>Desde acá se crean y administran los proyectos.</p></div><button class="new-btn">New project</button></div>
+                  <div class="editor-wrap">
+                    <div class="steps">
+                      <div class="step"><b>1</b><div>Abrir el navegador e ingresar a <strong>supabase.com</strong>.</div></div>
+                      <div class="step"><b>2</b><div>Hacer clic en <strong>Start your project</strong> o <strong>Sign in</strong>.</div></div>
+                      <div class="step"><b>3</b><div>Iniciar sesión con la cuenta correspondiente.</div></div>
+                      <div class="step"><b>4</b><div>Entrar al <strong>Dashboard</strong> donde aparecen los proyectos.</div></div>
+                    </div>
+                    <div class="result">Resultado esperado: se visualiza el panel de Supabase con la opción para crear un nuevo proyecto.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="nextScreen()">Siguiente</button></div>
+        </div>
+      </section>
+
+      <section class="screen">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 2</span>
+            <h2>Crear el proyecto y la base de datos</h2>
+            <p>En Supabase, cada proyecto crea una base de datos PostgreSQL asociada.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>Importante:</strong> no se crea una “base” suelta como en un servidor local. En Supabase se crea un <strong>proyecto</strong>, y ese proyecto incluye la base de datos.</div>
+            <div class="browser">
+              <div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">Dashboard / New project</div></div>
+              <div class="studio">
+                <div class="side">
+                  <div class="brand"><span class="logo"></span> Supabase</div>
+                  <div class="side-item active">New project</div>
+                  <div class="side-item">Organization</div>
+                  <div class="side-item">Settings</div>
+                </div>
+                <div class="workspace">
+                  <div class="toolbar"><div class="titlebox"><h3>Nuevo proyecto</h3><p>Completar los datos básicos de la base.</p></div><button class="run-btn">Create new project</button></div>
+                  <div class="editor-wrap">
+                    <div class="steps">
+                      <div class="step"><b>1</b><div>Presionar <strong>New project</strong>.</div></div>
+                      <div class="step"><b>2</b><div>Elegir la organización donde se guardará el proyecto.</div></div>
+                      <div class="step"><b>3</b><div>Escribir el nombre del proyecto, por ejemplo: <strong>curso-sql-supabase</strong>.</div></div>
+                      <div class="step"><b>4</b><div>Crear una contraseña segura para la base de datos.</div></div>
+                      <div class="step"><b>5</b><div>Seleccionar región y presionar <strong>Create new project</strong>.</div></div>
+                    </div>
+                    <div class="result">Resultado esperado: Supabase prepara el proyecto y crea automáticamente una base PostgreSQL.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="nextScreen()">Siguiente</button></div>
+        </div>
+      </section>
+
+      <section class="screen">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 3</span>
+            <h2>Entrar al SQL Editor</h2>
+            <p>Desde el SQL Editor se escriben sentencias SQL y se ejecutan con el botón Run.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>Ruta:</strong> dentro del proyecto, mirar el menú lateral izquierdo y entrar en <strong>SQL Editor</strong>. Luego presionar <strong>New query</strong>.</div>
+            <div class="browser">
+              <div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">Project / SQL Editor</div></div>
+              <div class="studio">
+                <div class="side">
+                  <div class="brand"><span class="logo"></span> curso-sql</div>
+                  <div class="side-item">Table Editor</div>
+                  <div class="side-item active">SQL Editor</div>
+                  <div class="side-item">Database</div>
+                  <div class="side-item">Authentication</div>
+                  <div class="side-item">Storage</div>
+                </div>
+                <div class="workspace">
+                  <div class="toolbar"><div class="titlebox"><h3>SQL Editor</h3><p>Crear una consulta nueva y ejecutarla.</p></div><button class="new-btn">New query</button></div>
+                  <div class="editor-wrap">
+                    <div class="sql-editor">
+                      <div class="editor-label"><span>untitled query.sql</span><button class="run-btn">Run</button></div>
+                      <pre><span class="cm">-- Acá se escriben las sentencias SQL</span>
+<span class="kw">select</span> <span class="str">'Hola Supabase'</span> <span class="kw">as</span> mensaje;</pre>
+                    </div>
+                    <div class="steps">
+                      <div class="step"><b>1</b><div>Hacer clic en <strong>SQL Editor</strong>.</div></div>
+                      <div class="step"><b>2</b><div>Presionar <strong>New query</strong>.</div></div>
+                      <div class="step"><b>3</b><div>Escribir o pegar la sentencia SQL.</div></div>
+                      <div class="step"><b>4</b><div>Presionar el botón verde <strong>Run</strong>.</div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="nextScreen()">Siguiente</button></div>
+        </div>
+      </section>
+
+      <section class="screen">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 4</span>
+            <h2>Crear una tabla con SQL</h2>
+            <p>Vamos a crear una tabla llamada estudiantes dentro del esquema public.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>CREATE TABLE:</strong> se usa para crear una nueva tabla. Cada campo necesita nombre y tipo de dato.</div>
+            <div class="browser">
+              <div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / New query</div></div>
+              <div class="studio">
+                <div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item">Table Editor</div><div class="side-item active">SQL Editor</div><div class="side-item">Database</div></div>
+                <div class="workspace">
+                  <div class="toolbar"><div class="titlebox"><h3>Crear tabla estudiantes</h3><p>Pegar el SQL y presionar Run.</p></div><button class="run-btn">Run</button></div>
+                  <div class="editor-wrap">
+                    <div class="sql-editor"><div class="editor-label"><span>crear_tabla_estudiantes.sql</span><button class="run-btn">Run</button></div><pre><span class="kw">create table</span> <span class="kw">if not exists</span> public.estudiantes (
+  id bigint <span class="kw">generated by default as identity primary key</span>,
+  nombre text <span class="kw">not null</span>,
+  apellido text <span class="kw">not null</span>,
+  email text <span class="kw">unique</span>,
+  curso text,
+  edad integer,
+  activo boolean <span class="kw">default</span> true,
+  creado_en timestamptz <span class="kw">default</span> now()
+);</pre></div>
+                    <div class="result">Al presionar <strong>Run</strong>, Supabase ejecuta la sentencia. Si no hay error, la tabla queda creada.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="nextScreen()">Siguiente</button></div>
+        </div>
+      </section>
+
+      <section class="screen">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 5</span>
+            <h2>Alta de registros: INSERT</h2>
+            <p>El alta consiste en agregar nuevos registros a una tabla.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>ABM - Alta:</strong> se realiza con <strong>INSERT INTO</strong>. En este ejemplo agregamos tres estudiantes.</div>
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / INSERT</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item">Table Editor</div><div class="side-item active">SQL Editor</div><div class="side-item">Database</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>Insertar estudiantes</h3><p>Ejecutar sentencia de alta.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>insert_estudiantes.sql</span><button class="run-btn">Run</button></div><pre><span class="kw">insert into</span> public.estudiantes
+  (nombre, apellido, email, curso, edad)
+<span class="kw">values</span>
+  (<span class="str">'Ana'</span>, <span class="str">'Pérez'</span>, <span class="str">'ana.perez@demo.com'</span>, <span class="str">'1A'</span>, 18),
+  (<span class="str">'Lucas'</span>, <span class="str">'Gómez'</span>, <span class="str">'lucas.gomez@demo.com'</span>, <span class="str">'1A'</span>, 19),
+  (<span class="str">'María'</span>, <span class="str">'Rodríguez'</span>, <span class="str">'maria.rodriguez@demo.com'</span>, <span class="str">'2B'</span>, 20);</pre></div><div class="result">Resultado esperado: se agregan tres filas nuevas en la tabla estudiantes.</div></div></div></div></div>
+            <div class="steps"><div class="step"><b>1</b><div>Pegar el código SQL en el editor.</div></div><div class="step"><b>2</b><div>Presionar <strong>Run</strong>.</div></div><div class="step"><b>3</b><div>Si aparece un error por email duplicado, significa que ese registro ya fue insertado antes.</div></div></div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="nextScreen()">Siguiente</button></div>
+        </div>
+      </section>
+
+      <section class="screen">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 6</span>
+            <h2>Consulta básica: SELECT</h2>
+            <p>SELECT permite ver los datos guardados en una tabla.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>Consulta:</strong> se usa para recuperar información. Puede mostrar todos los campos o solo algunos.</div>
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / SELECT</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item">Table Editor</div><div class="side-item active">SQL Editor</div><div class="side-item">Database</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>Consultar estudiantes</h3><p>Ejecutar consulta y ver resultados debajo.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>select_estudiantes.sql</span><button class="run-btn">Run</button></div><pre><span class="kw">select</span>
+  id,
+  nombre,
+  apellido,
+  email,
+  curso,
+  edad,
+  activo
+<span class="kw">from</span> public.estudiantes
+<span class="kw">order by</span> apellido <span class="kw">asc</span>;</pre></div><table class="table-preview"><thead><tr><th>id</th><th>nombre</th><th>apellido</th><th>curso</th><th>edad</th></tr></thead><tbody><tr><td>1</td><td>Ana</td><td>Pérez</td><td>1A</td><td>18</td></tr><tr><td>2</td><td>Lucas</td><td>Gómez</td><td>1A</td><td>19</td></tr><tr><td>3</td><td>María</td><td>Rodríguez</td><td>2B</td><td>20</td></tr></tbody></table></div></div></div></div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="nextScreen()">Siguiente</button></div>
+        </div>
+      </section>
+
+      <section class="screen">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 7</span>
+            <h2>Modificación de registros: UPDATE</h2>
+            <p>UPDATE permite cambiar datos existentes.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>ABM - Modificación:</strong> siempre conviene usar <strong>WHERE</strong> para indicar qué registro se modifica. Sin WHERE se modificarían todos.</div>
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / UPDATE</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item">Table Editor</div><div class="side-item active">SQL Editor</div><div class="side-item">Database</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>Modificar estudiante</h3><p>Actualizar curso y edad por email.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>update_estudiante.sql</span><button class="run-btn">Run</button></div><pre><span class="kw">update</span> public.estudiantes
+<span class="kw">set</span>
+  curso = <span class="str">'2A'</span>,
+  edad = 19
+<span class="kw">where</span> email = <span class="str">'ana.perez@demo.com'</span>;</pre></div><div class="result">Resultado esperado: Ana Pérez cambia de curso 1A a 2A y su edad queda en 19.</div></div></div></div></div>
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / verificar modificación</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item active">SQL Editor</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>Verificar cambio</h3><p>Consultar solo el registro modificado.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>verificar_update.sql</span><button class="run-btn">Run</button></div><pre><span class="kw">select</span> *
+<span class="kw">from</span> public.estudiantes
+<span class="kw">where</span> email = <span class="str">'ana.perez@demo.com'</span>;</pre></div></div></div></div></div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="nextScreen()">Siguiente</button></div>
+        </div>
+      </section>
+
+      <section class="screen">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 8</span>
+            <h2>Baja de registros: DELETE</h2>
+            <p>DELETE elimina registros de una tabla.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>ABM - Baja:</strong> igual que UPDATE, DELETE debe usarse con <strong>WHERE</strong> para no borrar toda la tabla.</div>
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / DELETE</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item">Table Editor</div><div class="side-item active">SQL Editor</div><div class="side-item">Database</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>Eliminar estudiante</h3><p>Eliminar por email.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>delete_estudiante.sql</span><button class="run-btn">Run</button></div><pre><span class="kw">delete from</span> public.estudiantes
+<span class="kw">where</span> email = <span class="str">'lucas.gomez@demo.com'</span>;</pre></div><div class="result">Resultado esperado: se elimina el registro de Lucas Gómez.</div></div></div></div></div>
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / verificar baja</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item active">SQL Editor</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>Verificar eliminación</h3><p>Consultar la tabla nuevamente.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>select_final.sql</span><button class="run-btn">Run</button></div><pre><span class="kw">select</span> id, nombre, apellido, email, curso, edad
+<span class="kw">from</span> public.estudiantes
+<span class="kw">order by</span> id;</pre></div></div></div></div></div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="nextScreen()">Siguiente</button></div>
+        </div>
+      </section>
+
+      <section class="screen">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 9</span>
+            <h2>Consultas SELECT útiles</h2>
+            <p>Además de listar todo, SQL permite filtrar, ordenar, contar y agrupar información.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>Práctica recomendada:</strong> ejecutar una consulta por vez con el botón <strong>Run</strong> para ver claramente el resultado.</div>
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / SELECT avanzado</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item">Table Editor</div><div class="side-item active">SQL Editor</div><div class="side-item">Database</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>Consultas de ejemplo</h3><p>Filtrar, contar y agrupar.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>consultas_select.sql</span><button class="run-btn">Run</button></div><pre><span class="cm">-- 1. Ver estudiantes activos</span>
+<span class="kw">select</span> *
+<span class="kw">from</span> public.estudiantes
+<span class="kw">where</span> activo = true;
+
+<span class="cm">-- 2. Buscar estudiantes de un curso</span>
+<span class="kw">select</span> nombre, apellido, curso
+<span class="kw">from</span> public.estudiantes
+<span class="kw">where</span> curso = <span class="str">'2A'</span>;
+
+<span class="cm">-- 3. Contar estudiantes por curso</span>
+<span class="kw">select</span> curso, <span class="fn">count</span>(*) <span class="kw">as</span> cantidad
+<span class="kw">from</span> public.estudiantes
+<span class="kw">group by</span> curso
+<span class="kw">order by</span> cantidad <span class="kw">desc</span>;
+
+<span class="cm">-- 4. Buscar por parte del apellido</span>
+<span class="kw">select</span> *
+<span class="kw">from</span> public.estudiantes
+<span class="kw">where</span> apellido <span class="kw">ilike</span> <span class="str">'%perez%'</span>;</pre></div><div class="result">Estas consultas no modifican datos: solo muestran información.</div></div></div></div></div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="nextScreen()">Siguiente</button></div>
+        </div>
+      </section>
+
+      <section class="screen">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 10</span>
+            <h2>Práctico integrador: Supabase + SQL</h2>
+            <p>Actividad para que cada estudiante realice el recorrido completo: loguearse, crear la base/proyecto, crear una tabla, cargar datos y resolver consultas ABM y SELECT.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>Modalidad:</strong> trabajo individual. Cada estudiante debe ingresar con su cuenta, crear su propio proyecto en Supabase y entregar capturas o evidencias de cada paso solicitado.</div>
+
+            <div class="steps">
+              <div class="step"><b>1</b><div><strong>Ingreso:</strong> entrar a Supabase, iniciar sesión y verificar que se vea el panel principal.</div></div>
+              <div class="step"><b>2</b><div><strong>Crear base/proyecto:</strong> crear un proyecto nuevo llamado <strong>practico_sql_apellido</strong>. En Supabase, al crear el proyecto se crea también la base de datos PostgreSQL asociada.</div></div>
+              <div class="step"><b>3</b><div><strong>Abrir SQL Editor:</strong> crear una consulta nueva y ejecutar cada bloque con el botón <strong>Run</strong>.</div></div>
+              <div class="step"><b>4</b><div><strong>Registrar evidencias:</strong> guardar capturas del proyecto creado, la tabla creada, los INSERT, el UPDATE, el DELETE y las consultas SELECT.</div></div>
+            </div>
+
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / práctico_integrador.sql</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item">Table Editor</div><div class="side-item active">SQL Editor</div><div class="side-item">Database</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>Crear tabla del práctico</h3><p>Tabla simple para practicar ABM completo.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>01_crear_tabla.sql</span><button class="run-btn">Run</button></div><pre><span class="cm">-- Crear tabla para el práctico</span>
+<span class="kw">create table if not exists</span> public.productos_practico (
+  id bigint <span class="kw">generated always as identity primary key</span>,
+  nombre text <span class="kw">not null</span>,
+  categoria text <span class="kw">not null</span>,
+  precio numeric(10,2) <span class="kw">not null</span>,
+  stock integer <span class="kw">not null</span>,
+  activo boolean <span class="kw">not null default</span> true,
+  creado_en timestamptz <span class="kw">not null default</span> now()
+);</pre></div><div class="result">Resultado esperado: se crea la tabla <strong>productos_practico</strong> dentro del esquema public.</div></div></div></div></div>
+
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / ABM</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item">Table Editor</div><div class="side-item active">SQL Editor</div><div class="side-item">Database</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>ABM: alta, modificación y baja</h3><p>Ejecutar de a un bloque y observar los resultados.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>02_abm_productos.sql</span><button class="run-btn">Run</button></div><pre><span class="cm">-- ALTA: cargar registros</span>
+<span class="kw">insert into</span> public.productos_practico
+(nombre, categoria, precio, stock, activo)
+<span class="kw">values</span>
+(<span class="str">'Mouse inalámbrico'</span>, <span class="str">'Periféricos'</span>, 8500.00, 12, true),
+(<span class="str">'Teclado mecánico'</span>, <span class="str">'Periféricos'</span>, 24500.00, 7, true),
+(<span class="str">'Monitor 24 pulgadas'</span>, <span class="str">'Pantallas'</span>, 110000.00, 4, true),
+(<span class="str">'Cable HDMI'</span>, <span class="str">'Accesorios'</span>, 4200.00, 20, true);
+
+<span class="cm">-- MODIFICACIÓN: cambiar precio y stock de un producto</span>
+<span class="kw">update</span> public.productos_practico
+<span class="kw">set</span> precio = 26000.00, stock = 10
+<span class="kw">where</span> nombre = <span class="str">'Teclado mecánico'</span>;
+
+<span class="cm">-- BAJA lógica: no borra el registro, lo deja inactivo</span>
+<span class="kw">update</span> public.productos_practico
+<span class="kw">set</span> activo = false
+<span class="kw">where</span> nombre = <span class="str">'Cable HDMI'</span>;
+
+<span class="cm">-- BAJA física: eliminar un registro puntual</span>
+<span class="kw">delete from</span> public.productos_practico
+<span class="kw">where</span> nombre = <span class="str">'Mouse inalámbrico'</span>;</pre></div><div class="result">Consigna: explicar brevemente la diferencia entre baja lógica y baja física.</div></div></div></div></div>
+
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">SQL Editor / consultas SELECT</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item">Table Editor</div><div class="side-item active">SQL Editor</div><div class="side-item">Database</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>Consultas solicitadas</h3><p>Resolver y capturar el resultado de cada consulta.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>03_select_practico.sql</span><button class="run-btn">Run</button></div><pre><span class="cm">-- 1. Listar todos los productos</span>
+<span class="kw">select</span> *
+<span class="kw">from</span> public.productos_practico
+<span class="kw">order by</span> id;
+
+<span class="cm">-- 2. Mostrar solo productos activos</span>
+<span class="kw">select</span> nombre, categoria, precio, stock
+<span class="kw">from</span> public.productos_practico
+<span class="kw">where</span> activo = true;
+
+<span class="cm">-- 3. Buscar productos con precio mayor a 20000</span>
+<span class="kw">select</span> nombre, precio
+<span class="kw">from</span> public.productos_practico
+<span class="kw">where</span> precio &gt; 20000
+<span class="kw">order by</span> precio <span class="kw">desc</span>;
+
+<span class="cm">-- 4. Contar productos por categoría</span>
+<span class="kw">select</span> categoria, <span class="fn">count</span>(*) <span class="kw">as</span> cantidad
+<span class="kw">from</span> public.productos_practico
+<span class="kw">group by</span> categoria
+<span class="kw">order by</span> cantidad <span class="kw">desc</span>;
+
+<span class="cm">-- 5. Calcular valor total del stock por producto</span>
+<span class="kw">select</span> nombre, precio, stock, precio * stock <span class="kw">as</span> valor_total_stock
+<span class="kw">from</span> public.productos_practico
+<span class="kw">where</span> activo = true;</pre></div><div class="result">Entrega mínima: nombre del proyecto, capturas de ejecución y una breve explicación de qué hace cada sentencia.</div></div></div></div></div>
+
+            <div class="note"><strong>Criterio de aprobación del práctico:</strong> se considera completo si el estudiante logra crear el proyecto/base, crear la tabla, insertar registros, modificar al menos un registro, eliminar o desactivar un registro y ejecutar correctamente las consultas SELECT solicitadas.</div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="nextScreen()">Siguiente</button></div>
+        </div>
+      </section>
+
+      <section class="screen">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Pantalla 11</span>
+            <h2>Resumen final del recorrido</h2>
+            <p>Con este recorrido se cubre el uso básico de Supabase como base de datos SQL.</p>
+          </div>
+          <div class="content">
+            <div class="note"><strong>El alumno practicó:</strong> apertura de Supabase, creación de proyecto/base, uso del SQL Editor, creación de tablas y operaciones ABM.</div>
+            <div class="browser"><div class="browser-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><div class="address">Resumen / SQL trabajado</div></div><div class="studio"><div class="side"><div class="brand"><span class="logo"></span> Supabase</div><div class="side-item active">SQL Editor</div><div class="side-item">Table Editor</div><div class="side-item">Database</div></div><div class="workspace"><div class="toolbar"><div class="titlebox"><h3>Comandos principales</h3><p>Sentencias vistas en el tutorial.</p></div><button class="run-btn">Run</button></div><div class="editor-wrap"><div class="sql-editor"><div class="editor-label"><span>resumen.sql</span><button class="run-btn">Run</button></div><pre><span class="cm">-- Crear tabla</span>
+<span class="kw">create table</span> public.estudiantes (...);
+
+<span class="cm">-- Alta</span>
+<span class="kw">insert into</span> public.estudiantes (...) <span class="kw">values</span> (...);
+
+<span class="cm">-- Consulta</span>
+<span class="kw">select</span> * <span class="kw">from</span> public.estudiantes;
+
+<span class="cm">-- Modificación</span>
+<span class="kw">update</span> public.estudiantes <span class="kw">set</span> campo = valor <span class="kw">where</span> condicion;
+
+<span class="cm">-- Baja</span>
+<span class="kw">delete from</span> public.estudiantes <span class="kw">where</span> condicion;</pre></div><div class="steps"><div class="step"><b>✓</b><div>Crear proyecto en Supabase.</div></div><div class="step"><b>✓</b><div>Entrar al SQL Editor.</div></div><div class="step"><b>✓</b><div>Ejecutar sentencias con el botón <strong>Run</strong>.</div></div><div class="step"><b>✓</b><div>Crear tablas y practicar ABM.</div></div></div></div></div></div></div>
+          </div>
+          <div class="actions"><button class="action-btn" onclick="prevScreen()">Anterior</button><button class="action-btn primary" onclick="showScreen(0)">Volver al inicio</button></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer>Tutorial educativo: Supabase + SQL Editor + ABM con sentencias SQL.</footer>
+
+  <script>
+    const screens = document.querySelectorAll('.screen');
+    const buttons = document.querySelectorAll('.nav-btn');
+    let current = 0;
+
+    function showScreen(index) {
+      if (index < 0) index = 0;
+      if (index >= screens.length) index = screens.length - 1;
+      screens.forEach(s => s.classList.remove('active'));
+      buttons.forEach(b => b.classList.remove('active'));
+      screens[index].classList.add('active');
+      buttons[index].classList.add('active');
+      current = index;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nextScreen() { showScreen(current + 1); }
+    function prevScreen() { showScreen(current - 1); }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => showScreen(Number(btn.dataset.screen)));
+    });
+  </script>
+</body>
+</html>
